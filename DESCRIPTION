@@ -1,6 +1,6 @@
 Package: tarchives
 Title: Make Your 'targets' Pipelines into a Package
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Mizuki", "Uchida", , "uchidamizuki@vivaldi.net", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0003-6534-6942"))
@@ -17,9 +17,9 @@ Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: R (>= 4.0.0)
 NeedsCompilation: no
-Packaged: 2025-06-01 16:06:20 UTC; uchid
+Packaged: 2025-06-22 03:35:55 UTC; uchid
 Author: Mizuki Uchida [aut, cre] (ORCID:
     <https://orcid.org/0009-0003-6534-6942>)
 Maintainer: Mizuki Uchida <uchidamizuki@vivaldi.net>
 Repository: CRAN
-Date/Publication: 2025-06-04 12:20:02 UTC
+Date/Publication: 2025-06-22 04:40:02 UTC
