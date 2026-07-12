@@ -59,3 +59,19 @@ if \code{format = "file"} was set.
 \description{
 Read a target's value from archive storage
 }
+\details{
+\code{tar_read_archive()} captures \code{name} with non-standard evaluation, whereas
+\code{tar_read_archive_raw()} takes it as a character string.
+}
+\examples{
+\donttest{
+withr::with_envvar(
+  c(R_USER_CACHE_DIR = tempfile()),
+  {
+    tar_make_archive(package = "tarchives", pipeline = "example-model")
+    tar_read_archive(model, package = "tarchives", pipeline = "example-model")
+  }
+)
+}
+
+}

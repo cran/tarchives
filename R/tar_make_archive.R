@@ -1,4 +1,4 @@
-#' Run an archived pipeline of targets.
+#' Run an archived pipeline of targets
 #'
 #' @param package A scalar character of the package name.
 #' @param pipeline A scalar character of the pipeline name.
@@ -7,6 +7,14 @@
 #' @inheritParams targets::tar_make
 #'
 #' @inherit targets::tar_make return
+#'
+#' @examples
+#' \donttest{
+#' withr::with_envvar(
+#'   c(R_USER_CACHE_DIR = tempfile()),
+#'   tar_make_archive(package = "tarchives", pipeline = "example-model")
+#' )
+#' }
 #'
 #' @export
 tar_make_archive <- function(
@@ -29,6 +37,8 @@ tar_make_archive <- function(
   terminate_controller = TRUE,
   as_job = targets::tar_config_get("as_job")
 ) {
+  check_string(package, allow_empty = FALSE)
+  check_string(pipeline, allow_empty = FALSE)
   script <- tar_archive_script(
     package = package,
     pipeline = pipeline,

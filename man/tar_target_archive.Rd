@@ -3,7 +3,7 @@
 \name{tar_target_archive}
 \alias{tar_target_archive}
 \alias{tar_target_archive_raw}
-\title{Declare a target to read an archive.}
+\title{Declare a target to read an archive}
 \usage{
 tar_target_archive(
   name,
@@ -91,10 +91,11 @@ on the result to locally recreate the target's initial RNG state.}
 
 \item{pipeline}{A scalar character of the pipeline name.}
 
-\item{name_archive}{A scalar character of a name of archived target.
-If \code{NULL}, the name of the target is used. By default, \code{NULL}.}
+\item{name_archive}{Symbol, name of the archived target. If \code{NULL}, the
+name of the target is used. By default, \code{NULL}.}
 
-\item{...}{Arguments to pass to \link[targets:tar_outdated]{targets::tar_outdated}, \link[targets:tar_make]{targets::tar_make} or \link{tar_read_archive_raw}.}
+\item{...}{Arguments to pass to \code{\link[=tar_make_archive]{tar_make_archive()}} or
+\code{\link[=tar_read_archive_raw]{tar_read_archive_raw()}}.}
 
 \item{pattern}{Code to define a dynamic branching branching for a target.
 In \code{\link[targets:tar_target]{tar_target()}}, \code{pattern} is an unevaluated expression, e.g.
@@ -220,7 +221,8 @@ for non-dynamically-branched targets that other targets
 dynamically branch over. For example: if your pipeline has
 \code{tar_target(name = y, command = x, pattern = map(x))},
 then \code{tar_target(name = x, command = f(), memory = "auto")}
-will use persistent memory in order to avoid rereading all of \code{x}
+will use persistent memory for \code{x}
+in order to avoid rereading all of \code{x}
 for every branch of \code{y}.
 \item \code{"transient"}: the target gets unloaded
 after every new target completes.
@@ -323,10 +325,31 @@ lists all the targets whose descriptions start with the character
 string \code{"survival model"}.}
 }
 \value{
-A target object. Users should not modify these directly,
+A target definition object. Users should not modify these directly,
 just feed them to \code{\link[=list]{list()}} in your target script file
 (default: \verb{_targets.R}).
 }
 \description{
-Declare a target to read an archive.
+Declare a target to read an archive
+}
+\details{
+\code{tar_target_archive()} captures \code{name} and \code{name_archive} with non-standard
+evaluation, whereas \code{tar_target_archive_raw()} takes them as character
+strings.
+
+The archive is built (if outdated) and read when the target runs, not when
+the target script is sourced, so inspecting the pipeline with
+\code{\link[targets:tar_manifest]{targets::tar_manifest()}} or \code{\link[targets:tar_visnetwork]{targets::tar_visnetwork()}} does not trigger a
+build. The target tracks the installed version of \code{package}, so it reruns
+and refreshes the data when a new version of the package providing the
+archive is installed, and is skipped otherwise. Downstream targets still
+only rebuild when the value actually changes.
+}
+\examples{
+tar_target_archive(
+  model,
+  package = "tarchives",
+  pipeline = "example-model"
+)
+
 }

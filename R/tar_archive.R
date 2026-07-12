@@ -2,30 +2,71 @@ with_dir_archive <- function(
   package,
   pipeline,
   envir,
-  code
+  code,
+  call = caller_env()
 ) {
   withr::with_dir(
-    rlang::eval_bare(
-      rlang::call2(
-        "system.file",
-        "tarchives",
-        pipeline,
-        package = package,
-        mustWork = TRUE
-      ),
-      env = envir
+    archive_system_file(
+      pipeline,
+      package = package,
+      envir = envir,
+      call = call
     ),
     code
   )
+}
+
+# `pkgload::load_all()`'s `system.file()` shim (which resolves a dev-loaded
+# package to its source directory) is only consulted when the call is looked
+# up from an environment on the search path, like the global environment --
+# not from inside this package's own namespace. Evaluating the call in the
+# caller's `envir` instead lets the shim still apply when the ultimate caller
+# is on the search path (e.g. an interactive session after `load_all()`).
+eval_system_file <- function(..., package, envir) {
+  rlang::eval_bare(
+    rlang::call2("system.file", ..., package = package),
+    env = envir
+  )
+}
+
+# Resolve a path inside the `inst/tarchives` directory of `package`, erroring
+# with an actionable message when the package or the requested file is missing.
+archive_system_file <- function(..., package, envir, call = caller_env()) {
+  path <- eval_system_file("tarchives", ..., package = package, envir = envir)
+  if (!nzchar(path)) {
+    if (!nzchar(eval_system_file(package = package, envir = envir))) {
+      cli::cli_abort(
+        c(
+          "Can't find package {.pkg {package}}.",
+          i = "Is it installed?"
+        ),
+        call = call
+      )
+    }
+    file <- file.path(...)
+    cli::cli_abort(
+      "Can't find {.file {file}} in the {.path inst/tarchives} directory of \\
+      package {.pkg {package}}.",
+      call = call
+    )
+  }
+  path
 }
 
 #' Path to the archived target script file
 #'
 #' @param package A scalar character of the package name.
 #' @param pipeline A scalar character of the pipeline name.
+#' @param envir An environment used to resolve `package`, so that a package
+#' currently loaded with `pkgload::load_all()` (e.g. during interactive
+#' package development) is resolved to its source directory instead of its
+#' installed one. Defaults to the calling environment.
 #' @inheritParams targets::tar_make
 #'
 #' @return A scalar character of the path to the archived target script file.
+#'
+#' @examples
+#' tar_archive_script(package = "tarchives", pipeline = "example-model")
 #'
 #' @export
 tar_archive_script <- function(
@@ -34,6 +75,8 @@ tar_archive_script <- function(
   envir = parent.frame(),
   script = targets::tar_config_get("script")
 ) {
+  check_string(package, allow_empty = FALSE)
+  check_string(pipeline, allow_empty = FALSE)
   with_dir_archive(
     package = package,
     pipeline = pipeline,
@@ -51,12 +94,17 @@ tar_archive_script <- function(
 #' @return A scalar character of the path to the archived target store
 #' directory.
 #'
+#' @examples
+#' tar_archive_store(package = "tarchives", pipeline = "example-model")
+#'
 #' @export
 tar_archive_store <- function(
   package,
   pipeline,
   store = targets::tar_config_get("store")
 ) {
+  check_string(package, allow_empty = FALSE)
+  check_string(pipeline, allow_empty = FALSE)
   fs::path(
     tools::R_user_dir(
       "tarchives",
@@ -68,6 +116,27 @@ tar_archive_store <- function(
   )
 }
 
+# Abort with an actionable message when an archived store has not been built
+# yet, rather than letting `targets` fail with a less obvious error.
+check_archive_store_exists <- function(
+  store,
+  package,
+  pipeline,
+  call = caller_env()
+) {
+  if (!fs::dir_exists(store)) {
+    cli::cli_abort(
+      c(
+        "Can't find the archived store for pipeline {.val {pipeline}} of \\
+        package {.pkg {package}}.",
+        i = "Have you run {.code tar_make_archive()} for this pipeline yet?"
+      ),
+      call = call
+    )
+  }
+  invisible(store)
+}
+
 #' Function factory for archived targets
 #'
 #' @param f A function of targets package.
@@ -76,6 +145,20 @@ tar_archive_store <- function(
 #' @inheritParams targets::tar_make
 #'
 #' @return A function.
+#'
+#' @examples
+#' tar_outdated_archive <- tar_archive(
+#'   targets::tar_outdated,
+#'   package = "tarchives",
+#'   pipeline = "example-model"
+#' )
+#'
+#' \donttest{
+#' withr::with_envvar(
+#'   c(R_USER_CACHE_DIR = tempfile()),
+#'   tar_outdated_archive()
+#' )
+#' }
 #'
 #' @export
 tar_archive <- function(
@@ -86,6 +169,8 @@ tar_archive <- function(
   script = targets::tar_config_get("script"),
   store = targets::tar_config_get("store")
 ) {
+  check_string(package, allow_empty = FALSE)
+  check_string(pipeline, allow_empty = FALSE)
   fmls_names <- rlang::fn_fmls_names(f)
 
   args <- list()
@@ -96,6 +181,7 @@ tar_archive <- function(
     args$script <- tar_archive_script(
       package = package,
       pipeline = pipeline,
+      envir = envir,
       script = script
     )
   }

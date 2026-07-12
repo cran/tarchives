@@ -6,10 +6,24 @@
 \alias{tarchives-package}
 \title{tarchives: Make Your 'targets' Pipelines into a Package}
 \description{
-Runs 'targets' pipeline in '/inst/tarchives' and stores the results in the R user directory. This means that the user does not have to run the process repeatedly, and the developer has the flexibility to update the data as versions are updated.
+Runs 'targets' pipelines bundled inside a package and caches the results in the R user cache directory, so that users of the package do not need to rerun the pipeline themselves. Package authors can update the cached results at any time by releasing a new package version.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/UchidaMizuki/tarchives}
+  \item \url{https://uchidamizuki.github.io/tarchives/}
+  \item Report bugs at \url{https://github.com/UchidaMizuki/tarchives/issues}
+}
+
 }
 \author{
-\strong{Maintainer}: Mizuki Uchida \email{uchidamizuki@vivaldi.net} (\href{https://orcid.org/0009-0003-6534-6942}{ORCID})
+\strong{Maintainer}: Mizuki Uchida \email{uchidamizuki@vivaldi.net} (\href{https://orcid.org/0009-0003-6534-6942}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Mizuki Uchida \email{uchidamizuki@vivaldi.net} (\href{https://orcid.org/0009-0003-6534-6942}{ORCID}) [copyright holder]
+}
 
 }
 \keyword{internal}
